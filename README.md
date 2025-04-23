@@ -34,71 +34,66 @@
    - اسم المستخدم: `admin`
    - كلمة المرور: `admin123`
 
-## كيفية رفع المشروع على GitHub
+## كيفية نشر المشروع على Vercel
 
-### 1. تثبيت Git
+### 1. إنشاء حساب على Vercel
 
-إذا لم يكن Git مثبتًا على جهازك، قم بتحميله وتثبيته من [الموقع الرسمي](https://git-scm.com/downloads).
+قم بإنشاء حساب على [Vercel](https://vercel.com) إذا لم يكن لديك حساب بالفعل.
 
-### 2. إعداد Git
+### 2. رفع المشروع على GitHub
 
-بعد التثبيت، افتح موجه الأوامر (Command Prompt) أو PowerShell وقم بإعداد معلومات المستخدم:
-
-```
-git config --global user.name "اسمك"
-git config --global user.email "بريدك الإلكتروني"
-```
-
-### 3. تهيئة المستودع المحلي
-
-انتقل إلى مجلد المشروع وقم بتهيئة مستودع Git:
+قم برفع المشروع على GitHub باستخدام الأوامر التالية:
 
 ```
 cd c:\Users\max\Desktop\878
 git init
 git add .
 git commit -m "النسخة الأولى من نظام تسجيل بيانات دارسي العلوم الشرعية"
-```
-
-### 4. ربط المستودع المحلي بمستودع GitHub
-
-```
 git remote add origin https://github.com/rewaq218/rewaq.git
 git branch -M main
 git push -u origin main
 ```
 
-قد تحتاج إلى إدخال بيانات تسجيل الدخول الخاصة بحساب GitHub الخاص بك.
+### 3. ربط المشروع بـ Vercel
 
-### 5. نشر الموقع باستخدام GitHub Pages
+1. قم بتسجيل الدخول إلى [Vercel](https://vercel.com)
+2. انقر على "Add New..." ثم "Project"
+3. اختر مستودع GitHub الخاص بك (rewaq218/rewaq)
+4. في صفحة إعدادات المشروع، قم بإضافة متغيرات البيئة التالية في قسم "Environment Variables":
+   - `NEXT_PUBLIC_SUPABASE_URL`: أدخل URL الخاص بمشروع Supabase الخاص بك
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: أدخل مفتاح API العام لمشروع Supabase الخاص بك
+5. انقر على "Deploy"
 
-1. انتقل إلى مستودع GitHub الخاص بك على https://github.com/rewaq218/rewaq
-2. انتقل إلى "Settings" ثم "Pages"
-3. في قسم "Source"، اختر "main" كفرع وحدد المجلد الرئيسي "/ (root)"
-4. انقر على "Save"
-5. انتظر بضع دقائق وسيكون موقعك متاحًا على عنوان URL مشابه لـ https://rewaq218.github.io/rewaq/
+### 4. إعداد CORS في Supabase
+
+1. انتقل إلى لوحة تحكم Supabase الخاصة بمشروعك
+2. انتقل إلى "Settings" ثم "API"
+3. في قسم "API Settings"، أضف عنوان موقعك على Vercel إلى قائمة "Additional Allowed Origins"
+   - مثال: `https://rewaq.vercel.app`
+
+### 5. الوصول إلى الموقع
+
+بعد اكتمال عملية النشر، سيكون موقعك متاحًا على عنوان URL مشابه لـ `https://rewaq.vercel.app`
 
 ## بيانات تسجيل الدخول للمشرف
 
 - اسم المستخدم: `admin`
 - كلمة المرور: `admin123`
 
-## إعداد قاعدة البيانات
+## إعداد قاعدة البيانات Supabase
 
-يستخدم المشروع Supabase كقاعدة بيانات. لإعداد قاعدة البيانات، اتبع الخطوات التالية:
+يستخدم المشروع Supabase كقاعدة بيانات دائمة. لإعداد قاعدة البيانات، اتبع الخطوات التالية:
 
 1. قم بإنشاء حساب على [Supabase](https://supabase.com)
 2. قم بإنشاء مشروع جديد
 3. قم بإنشاء مخزن (bucket) جديد باسم `student_files` من خلال قسم Storage
 4. قم بتنفيذ ملف SQL الموجود في `supabase/schema.sql` من خلال SQL Editor في Supabase
-5. قم بتحديث ملف `.env.local` ببيانات الاتصال الخاصة بمشروعك:
+5. احصل على بيانات الاتصال من لوحة تحكم Supabase:
+   - انتقل إلى "Settings" ثم "API"
+   - انسخ URL من "Project URL"
+   - انسخ مفتاح API من "anon" "public"
 
-```
-SUPABASE_URL=https://your-supabase-url.supabase.co
-SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-6. قم بتحديث ملف `js/supabase.js` ببيانات الاتصال الخاصة بمشروعك
+6. قم بإضافة هذه البيانات إلى متغيرات البيئة في Vercel كما هو موضح في قسم "كيفية نشر المشروع على Vercel"
 
 ## تطوير المشروع مستقبلاً
 

@@ -449,27 +449,51 @@
                 const qualificationFile = document.querySelector('input[name="qualificationImage"]').files[0];
                 const paymentReceiptFile = document.querySelector('input[name="paymentReceiptImage"]').files[0];
 
+                // رفع صورة البطاقة
                 if (idCardFile) {
-                    const idCardPath = `${referenceNumber}/id_card.${idCardFile.name.split('.').pop()}`;
-                    const idCardUpload = await uploadFile(idCardFile, idCardPath);
-                    if (idCardUpload.success) {
-                        formData.id_card_url = idCardUpload.url;
+                    try {
+                        const idCardPath = `${referenceNumber}/id_card.${idCardFile.name.split('.').pop()}`;
+                        const idCardUpload = await uploadFile(idCardFile, idCardPath);
+                        if (idCardUpload.success) {
+                            formData.id_card_url = idCardUpload.url;
+                        } else {
+                            throw new Error(`فشل رفع صورة البطاقة: ${idCardUpload.error?.message || 'خطأ غير معروف'}`);
+                        }
+                    } catch (fileError) {
+                        console.error('Error uploading ID card:', fileError);
+                        throw new Error(`فشل رفع صورة البطاقة: ${fileError.message}`);
                     }
                 }
 
+                // رفع صورة المؤهل
                 if (qualificationFile) {
-                    const qualificationPath = `${referenceNumber}/qualification.${qualificationFile.name.split('.').pop()}`;
-                    const qualificationUpload = await uploadFile(qualificationFile, qualificationPath);
-                    if (qualificationUpload.success) {
-                        formData.qualification_url = qualificationUpload.url;
+                    try {
+                        const qualificationPath = `${referenceNumber}/qualification.${qualificationFile.name.split('.').pop()}`;
+                        const qualificationUpload = await uploadFile(qualificationFile, qualificationPath);
+                        if (qualificationUpload.success) {
+                            formData.qualification_url = qualificationUpload.url;
+                        } else {
+                            throw new Error(`فشل رفع صورة المؤهل: ${qualificationUpload.error?.message || 'خطأ غير معروف'}`);
+                        }
+                    } catch (fileError) {
+                        console.error('Error uploading qualification:', fileError);
+                        throw new Error(`فشل رفع صورة المؤهل: ${fileError.message}`);
                     }
                 }
 
+                // رفع صورة إيصال الدفع
                 if (paymentReceiptFile) {
-                    const paymentReceiptPath = `${referenceNumber}/payment_receipt.${paymentReceiptFile.name.split('.').pop()}`;
-                    const paymentReceiptUpload = await uploadFile(paymentReceiptFile, paymentReceiptPath);
-                    if (paymentReceiptUpload.success) {
-                        formData.payment_receipt_url = paymentReceiptUpload.url;
+                    try {
+                        const paymentReceiptPath = `${referenceNumber}/payment_receipt.${paymentReceiptFile.name.split('.').pop()}`;
+                        const paymentReceiptUpload = await uploadFile(paymentReceiptFile, paymentReceiptPath);
+                        if (paymentReceiptUpload.success) {
+                            formData.payment_receipt_url = paymentReceiptUpload.url;
+                        } else {
+                            throw new Error(`فشل رفع صورة إيصال الدفع: ${paymentReceiptUpload.error?.message || 'خطأ غير معروف'}`);
+                        }
+                    } catch (fileError) {
+                        console.error('Error uploading payment receipt:', fileError);
+                        throw new Error(`فشل رفع صورة إيصال الدفع: ${fileError.message}`);
                     }
                 }
 
@@ -484,12 +508,12 @@
                     document.querySelector('form').style.display = 'none';
                     document.getElementById('successMessage').style.display = 'block';
                 } else {
-                    alert('حدث خطأ أثناء حفظ البيانات. الرجاء المحاولة مرة أخرى.');
-                    console.error(saveResult.error);
+                    console.error('Error saving data:', saveResult.error);
+                    alert(`حدث خطأ أثناء حفظ البيانات. الرجاء المحاولة مرة أخرى. السبب: ${saveResult.error?.message || 'خطأ غير معروف'}`);
                 }
             } catch (error) {
-                alert('حدث خطأ غير متوقع. الرجاء المحاولة مرة أخرى.');
-                console.error(error);
+                console.error('Unexpected error:', error);
+                alert(`حدث خطأ غير متوقع. الرجاء المحاولة مرة أخرى. السبب: ${error?.message || 'خطأ غير معروف'}`);
             } finally {
                 // إعادة تفعيل زر التقديم
                 document.getElementById('submitButton').disabled = false;
