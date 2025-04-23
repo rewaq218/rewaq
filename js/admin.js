@@ -24,10 +24,10 @@ function showAdminDashboard() {
 // معالجة تسجيل الدخول
 async function handleLogin(e) {
     e.preventDefault();
-    
+
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    
+
     // في تطبيق حقيقي، يجب التحقق من بيانات الاعتماد بشكل آمن
     if (username === 'admin' && password === 'admin123') {
         localStorage.setItem('isLoggedIn', 'true');
@@ -52,10 +52,31 @@ async function loadStudents() {
     document.getElementById('loadingIndicator').style.display = 'block';
     document.getElementById('studentsTable').style.display = 'none';
     document.getElementById('errorMessage').style.display = 'none';
-    
+
     try {
-        const result = await getStudents();
-        
+        // محاولة الاتصال بقاعدة البيانات مع إعادة المحاولة
+        let retries = 3;
+        let result;
+
+        while (retries > 0) {
+            try {
+                result = await getStudents();
+                if (result.success) {
+                    break;
+                } else {
+                    throw new Error(result.error?.message || 'فشل في جلب البيانات');
+                }
+            } catch (retryError) {
+                console.error(`Error loading students (retries left: ${retries-1}):`, retryError);
+                retries--;
+                if (retries === 0) {
+                    throw retryError;
+                }
+                // انتظار قبل إعادة المحاولة
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
         if (result.success) {
             renderStudents(result.data);
             document.getElementById('loadingIndicator').style.display = 'none';
@@ -66,6 +87,7 @@ async function loadStudents() {
     } catch (error) {
         document.getElementById('loadingIndicator').style.display = 'none';
         document.getElementById('errorMessage').style.display = 'block';
+        document.getElementById('errorMessage').textContent = `حدث خطأ أثناء جلب البيانات: ${error.message}`;
         console.error('Error loading students:', error);
     }
 }
@@ -74,7 +96,7 @@ async function loadStudents() {
 function renderStudents(students) {
     const tableBody = document.getElementById('studentsTableBody');
     tableBody.innerHTML = '';
-    
+
     if (students.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -83,25 +105,25 @@ function renderStudents(students) {
         tableBody.appendChild(row);
         return;
     }
-    
+
     students.forEach(student => {
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50';
-        
+
         // تحويل المستويات إلى العربية
         let levelInArabic = student.level;
         if (student.level === 'preparatory') levelInArabic = 'تمهيدية';
         else if (student.level === 'intermediate') levelInArabic = 'متوسطة';
         else if (student.level === 'specialized') levelInArabic = 'تخصصية';
-        
+
         // تحويل نظام الحضور إلى العربية
         let attendanceInArabic = student.attendance_system;
         if (student.attendance_system === 'inPerson') attendanceInArabic = 'مباشر';
         else if (student.attendance_system === 'remote') attendanceInArabic = 'عن بعد';
-        
+
         // تنسيق التاريخ
         const createdAt = new Date(student.created_at).toLocaleDateString('ar-EG');
-        
+
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${student.reference_number}</td>
             <td class="px-6 py-4 whitespace-nowrap">${student.full_name}</td>
@@ -111,15 +133,15 @@ function renderStudents(students) {
             <td class="px-6 py-4 whitespace-nowrap">${attendanceInArabic}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createdAt}</td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <button 
-                    onclick="viewStudentDetails('${student.id}')" 
+                <button
+                    onclick="viewStudentDetails('${student.id}')"
                     class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm"
                 >
                     عرض التفاصيل
                 </button>
             </td>
         `;
-        
+
         tableBody.appendChild(row);
     });
 }
@@ -135,15 +157,15 @@ async function exportToExcel() {
     try {
         document.getElementById('exportButton').disabled = true;
         document.getElementById('exportButton').textContent = 'جاري التصدير...';
-        
+
         const result = await getStudents();
-        
+
         if (!result.success) {
             throw new Error('فشل في جلب البيانات');
         }
-        
+
         const students = result.data;
-        
+
         // تحويل البيانات إلى تنسيق مناسب للتصدير
         const exportData = students.map(student => {
             // تحويل المستويات إلى العربية
@@ -151,37 +173,37 @@ async function exportToExcel() {
             if (student.level === 'preparatory') levelInArabic = 'تمهيدية';
             else if (student.level === 'intermediate') levelInArabic = 'متوسطة';
             else if (student.level === 'specialized') levelInArabic = 'تخصصية';
-            
+
             // تحويل نظام الحضور إلى العربية
             let attendanceInArabic = student.attendance_system;
             if (student.attendance_system === 'inPerson') attendanceInArabic = 'مباشر';
             else if (student.attendance_system === 'remote') attendanceInArabic = 'عن بعد';
-            
+
             // تحويل النوع إلى العربية
             let genderInArabic = student.gender;
             if (student.gender === 'male') genderInArabic = 'ذكر';
             else if (student.gender === 'female') genderInArabic = 'أنثى';
-            
+
             // تحويل نوع التعليم إلى العربية
             let educationTypeInArabic = student.education_type;
             if (student.education_type === 'general') educationTypeInArabic = 'عام';
             else if (student.education_type === 'azhar') educationTypeInArabic = 'أزهري';
             else if (student.education_type === 'other') educationTypeInArabic = 'أخرى';
-            
+
             // تحويل المذهب إلى العربية
             let schoolInArabic = student.school;
             if (student.school === 'maliki') schoolInArabic = 'مالكي';
             else if (student.school === 'hanafi') schoolInArabic = 'حنفي';
             else if (student.school === 'shafii') schoolInArabic = 'شافعي';
-            
+
             // تحويل ذوي الهمم إلى العربية
             let specialNeedsInArabic = student.special_needs;
             if (student.special_needs === 'yes') specialNeedsInArabic = 'نعم';
             else if (student.special_needs === 'no') specialNeedsInArabic = 'لا';
-            
+
             // تنسيق التاريخ
             const createdAt = new Date(student.created_at).toLocaleDateString('ar-EG');
-            
+
             return {
                 'الرقم المرجعي': student.reference_number,
                 'الاسم': student.full_name,
@@ -203,15 +225,15 @@ async function exportToExcel() {
                 'تاريخ التسجيل': createdAt
             };
         });
-        
+
         // إنشاء ورقة عمل Excel
         const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'الطلاب');
-        
+
         // تصدير الملف
         XLSX.writeFile(workbook, 'بيانات_الطلاب.xlsx');
-        
+
         alert('تم تصدير البيانات بنجاح');
     } catch (error) {
         console.error('Error exporting data:', error);
@@ -226,7 +248,7 @@ async function exportToExcel() {
 document.addEventListener('DOMContentLoaded', function() {
     // إضافة معالج حدث لنموذج تسجيل الدخول
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
-    
+
     // التحقق من تسجيل الدخول
     checkLogin();
 });
